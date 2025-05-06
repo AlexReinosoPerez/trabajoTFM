@@ -1,12 +1,12 @@
 import os
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, WeightedRandomSampler
+from collections import Counter
+import numpy as np
 
-def get_data_loaders(data_dir, batch_size):
+def get_data_loaders(data_dir, batch_size, use_sampler=False):
     """
-    Returns DataLoaders for training and validation datasets, using advanced
-    data augmentation techniques to improve generalization, especially for the
-    minority class (obras falsas).
+    Crea los DataLoaders de entrenamiento y validación, con opción de aplicar muestreo ponderado.
     """
     train_transforms = transforms.Compose([
         transforms.Resize((256, 256)),
@@ -35,8 +35,22 @@ def get_data_loaders(data_dir, batch_size):
     train_dataset = datasets.ImageFolder(train_dir, transform=train_transforms)
     val_dataset = datasets.ImageFolder(val_dir, transform=val_transforms)
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    class_names = train_dataset.classes
+
+    targets = [label for _, label in train_dataset.samples]
+    class_counts = dict(Counter(targets))
+    total_samples = sum(class_counts.values())
+
+    if use_sampler:
+        print("🧪 Usando WeightedRandomSampler por desbalance de clases.")
+        class_sample_counts = np.array([class_counts[i] for i in range(len(class_names))])
+        weights = 1.0 / class_sample_counts
+        samples_weight = np.array([weights[t] for t in targets])
+        sampler = WeightedRandomSampler(weights=samples_weight, num_samples=len(samples_weight), replacement=True)
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, sampler=sampler)
+    else:
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
     val_loader = DataLoader(val_dataset, batch_size=batch_size)
 
-    class_names = train_dataset.classes
-    return train_loader, val_loader, class_names
+    return train_loader, val_loader, class_names, class_counts
