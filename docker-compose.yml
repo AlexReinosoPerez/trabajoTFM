@@ -8,11 +8,10 @@ services:
       - "5000:5000"
     environment:
       - MLFLOW_TRACKING_URI=http://0.0.0.0:5000
-      - MLFLOW_BACKEND_STORE_URI=sqlite:///mlflow.db
+      - MLFLOW_BACKEND_STORE_URI=sqlite:///mlflow/mlflow.db
       - MLFLOW_ARTIFACT_ROOT=/mlflow/artifacts
     volumes:
       - ./mlruns:/mlflow/artifacts
-      - ./mlflow.db:/mlflow/mlflow.db
     command: >
       mlflow server
       --backend-store-uri sqlite:///mlflow/mlflow.db
@@ -37,4 +36,7 @@ services:
     container_name: training_job
     depends_on:
       - mlflow
-    command: ["python", "src/train.py"]
+    command: ["python", "src/train_resnet50.py"]
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models

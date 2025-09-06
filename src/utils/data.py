@@ -54,3 +54,4 @@ def get_data_loaders(data_dir, batch_size, use_sampler=False):
     val_loader = DataLoader(val_dataset, batch_size=batch_size)
 
     return train_loader, val_loader, class_names, class_counts
+

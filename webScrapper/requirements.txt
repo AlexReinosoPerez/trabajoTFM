@@ -1,0 +1,5 @@
+requests>=2.31
+tqdm>=4.66
+pandas>=2.2
+urllib3>=2.0
+python-dotenv>=1.0
